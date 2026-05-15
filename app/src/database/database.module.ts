@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-//test
+
 @Module({
   imports: [
     TypeOrmModule.forRoot({
