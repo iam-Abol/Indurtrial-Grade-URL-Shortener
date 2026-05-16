@@ -17,6 +17,7 @@ export class Base62Converter {
 
   static decode(str: string): number {
     let result: number = 0;
+    if (str.length === 0) throw new Error('Invalid inputs');
     for (const char of str) {
       const index = this.ALPHABET.indexOf(char);
       if (index === -1) throw new Error('Invalid Base62 character');
