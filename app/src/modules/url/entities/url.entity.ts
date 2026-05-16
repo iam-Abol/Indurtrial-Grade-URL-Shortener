@@ -1,3 +1,4 @@
+import { ClickAnalytics } from 'src/modules/analytics/entities/analytics.entity';
 import { User } from 'src/modules/user/entities/user.entity';
 import {
   Column,
@@ -6,6 +7,7 @@ import {
   Entity,
   Index,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -17,9 +19,13 @@ export class Url {
   @ManyToOne(() => User, (user) => user.urls)
   user: User;
 
+  @Column({ nullable: true, unique: true })
+  customAlias: string;
+
+  
   @Index()
-  @Column()
-  shortUrl: string;
+  @Column({ unique: true, length: 10 })
+  shortCode: string;
 
   @Column()
   longUrl: string;
@@ -29,7 +35,7 @@ export class Url {
 
   @Column({
     type: 'timestamp',
-    default: () => "NOW() + INTERVAL '1 week'",
+    nullable: true,
   })
   expire_at: Date;
 
@@ -38,4 +44,7 @@ export class Url {
 
   @DeleteDateColumn({ nullable: true })
   deleted_at: Date;
+
+  @OneToMany(() => ClickAnalytics, (ClickAnalytics) => ClickAnalytics.url)
+  ClickAnalytics: ClickAnalytics[];
 }
