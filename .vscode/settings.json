@@ -1,0 +1,29 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "mysql1",
+            "database": "default",
+            "username": "root",
+            "askForPassword": true
+        },
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5433,
+            "askForPassword": true,
+            "driver": "PostgreSQL",
+            "name": "url_shorteneder",
+            "database": "url_shortener",
+            "username": "Abolz"
+        }
+    ]
+}

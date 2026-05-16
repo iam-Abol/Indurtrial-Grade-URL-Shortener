@@ -1,5 +1,5 @@
-import { ClickAnalytics } from 'src/modules/analytics/entities/analytics.entity';
-import { User } from 'src/modules/user/entities/user.entity';
+import { ClickAnalytics } from '../../../modules/analytics/entities/analytics.entity';
+import { User } from '../../../modules/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -22,7 +22,6 @@ export class Url {
   @Column({ nullable: true, unique: true })
   customAlias: string;
 
-  
   @Index()
   @Column({ unique: true, length: 10 })
   shortCode: string;

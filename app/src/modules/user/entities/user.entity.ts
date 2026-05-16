@@ -1,4 +1,4 @@
-import { Url } from 'src/modules/url/entities/url.entity';
+import { Url } from '../../../modules/url/entities/url.entity';
 import {
   Column,
   CreateDateColumn,
