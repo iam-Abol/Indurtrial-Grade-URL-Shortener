@@ -6,8 +6,8 @@ import { CreateShortUrlDto } from './dtos/CreateShortUrl.dto';
 export class UrlController {
   constructor(private urlService: UrlService) {}
 
-  @Post('/shorten')
-  shorent(@Body() body: CreateShortUrlDto) {
+  @Post('shorten')
+  shorten(@Body() body: CreateShortUrlDto) {
     const { longUrl } = body;
     return this.urlService.shorten(longUrl);
   }

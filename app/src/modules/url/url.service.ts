@@ -1,8 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { Base62Converter } from 'src/common/utils/base62.converter';
 import { Repository } from 'typeorm';
 import { Url } from './entities/url.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import {
+  assertUrlIsSafe,
+  UnsafeUrlError,
+} from 'src/common/utils/url-security.util';
 
 @Injectable()
 export class UrlService {
@@ -26,14 +34,26 @@ export class UrlService {
   async findByCustomAlias(alias: string) {
     return this.urlRepo.findOne({ where: { customAlias: alias } });
   }
-  async shorten(longUrl: string) {
+  async shorten(longUrl: string): Promise<{ shortUrl: string }> {
     try {
-      const data = await this.create({ longUrl });
-      const shortCode = Base62Converter.encode(data.id);
-      await this.updateShortCode(data.id, shortCode);
-      return `www.cochik.ir/${shortCode}`;
+      await assertUrlIsSafe(longUrl);
+    } catch (err) {
+      if (err instanceof UnsafeUrlError) {
+        throw new BadRequestException(err.message);
+      }
+      throw err;
+    }
+    try {
+      const createdUrl = await this.create({ longUrl });
+      const shortCode = Base62Converter.encode(createdUrl.id);
+      await this.updateShortCode(createdUrl.id, shortCode);
+      const domain = process.env.SHORTENER_DOMAIN || 'http://localhost:3000';
+
+      return {
+        shortUrl: `${domain}/${shortCode}`,
+      };
     } catch (error) {
-      throw new Error('An Error accured');
+      throw new InternalServerErrorException('Failed to shorten URL');
     }
   }
 }
