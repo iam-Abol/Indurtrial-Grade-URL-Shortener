@@ -1,4 +1,13 @@
-import { Controller } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
+import { UrlService } from './url.service';
 
-@Controller('url')
-export class UrlController {}
+@Controller('api/url')
+export class UrlController {
+  constructor(private urlService: UrlService) {}
+
+  @Post('/shorten')
+  shorent(@Body() body: any) {
+    const { longUrl } = body;
+    return this.urlService.shorten(longUrl);
+  }
+}

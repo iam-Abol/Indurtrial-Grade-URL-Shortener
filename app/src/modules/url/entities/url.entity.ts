@@ -23,7 +23,7 @@ export class Url {
   customAlias: string;
 
   @Index()
-  @Column({ unique: true, length: 10 })
+  @Column({ unique: true, length: 10, nullable: true })
   shortCode: string;
 
   @Column()
