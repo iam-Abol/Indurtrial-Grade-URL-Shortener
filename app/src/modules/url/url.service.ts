@@ -29,12 +29,10 @@ export class UrlService {
   async shorten(longUrl: string) {
     try {
       const data = await this.create({ longUrl });
-      console.log(data);
       const shortCode = Base62Converter.encode(data.id);
       await this.updateShortCode(data.id, shortCode);
       return `www.cochik.ir/${shortCode}`;
     } catch (error) {
-      console.log(error);
       throw new Error('An Error accured');
     }
   }
