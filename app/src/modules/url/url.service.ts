@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { Base62Converter } from 'src/common/utils/base62.converter';
 import { Repository } from 'typeorm';
@@ -33,6 +34,15 @@ export class UrlService {
   }
   async findByCustomAlias(alias: string) {
     return this.urlRepo.findOne({ where: { customAlias: alias } });
+  }
+  async redirect(shortCode: string) {
+    const url = await this.findByShortCode(shortCode);
+    if (!url) throw new NotFoundException('Url not found');
+    if (url.expire_at && url.expire_at < new Date()) {
+      throw new NotFoundException('Url  expired');
+    }
+    // TODO -> click rate with a queue
+    return url;
   }
   async shorten(longUrl: string): Promise<{ shortUrl: string }> {
     try {
