@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
@@ -42,5 +43,16 @@ export class UserService {
     } catch (err) {
       throw new InternalServerErrorException('Failed to create user');
     }
+  }
+
+  async validateUser(email: string, password: string) {
+    const user = await this.findByEmail(email);
+    if (!user) throw new UnauthorizedException('Invalid credentials');
+
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) throw new UnauthorizedException('Invalid credentials');
+
+    const { password_hash, ...result } = user;
+    return result;
   }
 }
