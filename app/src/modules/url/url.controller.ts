@@ -20,7 +20,7 @@ export class UrlController {
     const { longUrl } = body;
     return this.urlService.shorten(longUrl);
   }
-  @Get(':code')
+
   @Get(':code')
   async redirect(@Param('code') code: string, @Res() res: express.Response) {
     const url = await this.urlService.redirect(code);
