@@ -89,4 +89,17 @@ export class UrlService {
       throw new InternalServerErrorException('Failed to shorten URL');
     }
   }
+  async delete(id: number, userId: number) {
+    const url = await this.urlRepo.findOne({
+      where: { id, user: { id: userId } },
+    });
+
+    if (!url) {
+      throw new NotFoundException(
+        'URL not found or you do not have permission',
+      );
+    }
+
+    return await this.urlRepo.softDelete(id);
+  }
 }

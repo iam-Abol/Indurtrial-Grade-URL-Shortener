@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   NotFoundException,
   Param,
@@ -29,6 +30,13 @@ export class UrlController {
   async myUrls(@Req() req) {
     return this.urlService.findMyUrls(req.user.userId);
   }
+
+  @Delete('urls/:id')
+  @UseGuards(JwtAuthGuard)
+  async delete(@Param('id') id: number, @Req() req) {
+    return this.urlService.delete(id, req.user.userId);
+  }
+
   @Get(':code')
   async redirect(@Param('code') code: string, @Res() res: express.Response) {
     const url = await this.urlService.redirect(code);
