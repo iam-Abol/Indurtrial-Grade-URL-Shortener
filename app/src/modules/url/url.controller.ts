@@ -6,16 +6,19 @@ import {
   Param,
   Post,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { UrlService } from './url.service';
 import { CreateShortUrlDto } from './dtos/CreateShortUrl.dto';
 import express from 'express';
+import { JwtAuthGuard } from '../auth/passport/jwt-auth.guard';
 
 @Controller('')
 export class UrlController {
   constructor(private urlService: UrlService) {}
 
   @Post('shorten')
+  @UseGuards(JwtAuthGuard)
   shorten(@Body() body: CreateShortUrlDto) {
     const { longUrl } = body;
     return this.urlService.shorten(longUrl);
