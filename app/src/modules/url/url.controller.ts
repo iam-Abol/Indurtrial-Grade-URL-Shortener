@@ -24,7 +24,11 @@ export class UrlController {
     const { longUrl } = body;
     return this.urlService.shorten(longUrl, req.user.userId);
   }
-
+  @Get('urls/my')
+  @UseGuards(JwtAuthGuard)
+  async myUrls(@Req() req) {
+    return this.urlService.findMyUrls(req.user.userId);
+  }
   @Get(':code')
   async redirect(@Param('code') code: string, @Res() res: express.Response) {
     const url = await this.urlService.redirect(code);

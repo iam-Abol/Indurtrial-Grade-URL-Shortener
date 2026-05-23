@@ -24,6 +24,22 @@ export class UrlService {
     const entity = this.urlRepo.create(url);
     return this.urlRepo.save(entity);
   }
+  async findMyUrls(userId: number) {
+    return this.urlRepo.find({
+      where: {
+        user: { id: userId },
+      },
+      order: { created_at: 'DESC' },
+      select: {
+        id: true,
+        shortCode: true,
+        longUrl: true,
+        created_at: true,
+        expire_at: true,
+        click_count: true,
+      },
+    });
+  }
   async findByShortCode(shortCode: string) {
     return this.urlRepo.findOne({ where: { shortCode } });
   }
