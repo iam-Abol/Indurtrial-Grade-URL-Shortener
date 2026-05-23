@@ -12,6 +12,7 @@ import {
   assertUrlIsSafe,
   UnsafeUrlError,
 } from 'src/common/utils/url-security.util';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class UrlService {
@@ -44,7 +45,10 @@ export class UrlService {
     // TODO -> click rate with a queue
     return url;
   }
-  async shorten(longUrl: string): Promise<{ shortUrl: string }> {
+  async shorten(
+    longUrl: string,
+    userId: number,
+  ): Promise<{ shortUrl: string }> {
     try {
       await assertUrlIsSafe(longUrl);
     } catch (err) {
@@ -54,7 +58,10 @@ export class UrlService {
       throw err;
     }
     try {
-      const createdUrl = await this.create({ longUrl });
+      const createdUrl = await this.create({
+        longUrl,
+        user: { id: userId } as User,
+      });
       const shortCode = Base62Converter.encode(createdUrl.id);
       await this.updateShortCode(createdUrl.id, shortCode);
       const domain = process.env.SHORTENER_DOMAIN || 'http://localhost:3000';

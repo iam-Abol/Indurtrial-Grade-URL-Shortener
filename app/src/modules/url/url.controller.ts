@@ -5,6 +5,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -19,9 +20,9 @@ export class UrlController {
 
   @Post('shorten')
   @UseGuards(JwtAuthGuard)
-  shorten(@Body() body: CreateShortUrlDto) {
+  shorten(@Body() body: CreateShortUrlDto, @Req() req) {
     const { longUrl } = body;
-    return this.urlService.shorten(longUrl);
+    return this.urlService.shorten(longUrl, req.user.userId);
   }
 
   @Get(':code')
