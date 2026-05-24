@@ -5,6 +5,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Post,
   Req,
   Res,
@@ -33,7 +34,7 @@ export class UrlController {
 
   @Delete('urls/:id')
   @UseGuards(JwtAuthGuard)
-  async delete(@Param('id') id: number, @Req() req) {
+  async delete(@Param('id', ParseIntPipe) id: number, @Req() req) {
     return this.urlService.delete(id, req.user.userId);
   }
 
