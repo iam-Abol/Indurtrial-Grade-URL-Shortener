@@ -1,17 +1,14 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RedisService } from './redis.service';
 import { createClient } from 'redis';
 
 @Module({
-  imports: [ConfigModule],
   providers: [
     {
       provide: 'REDIS_CLIENT',
-      useFactory: async (configService: ConfigService) => {
+      useFactory: async () => {
         const client = createClient({
-          url:
-            configService.get<string>('REDIS_URL') || 'redis://localhost:6379',
+          url: process.env['REDIS_URL'] || 'redis://localhost:6379',
         });
 
         client.on('error', (err) => {
@@ -21,7 +18,6 @@ import { createClient } from 'redis';
         await client.connect();
         return client;
       },
-      inject: [ConfigService],
     },
     RedisService,
   ],

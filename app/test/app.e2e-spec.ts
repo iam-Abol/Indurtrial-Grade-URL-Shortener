@@ -1,19 +1,42 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
+import {
+  PostgreSqlContainer,
+  StartedPostgreSqlContainer,
+} from '@testcontainers/postgresql';
 
-describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
+describe('App E2E Integration Tests', () => {
+  let app: INestApplication;
+  let postgresContainer: StartedPostgreSqlContainer;
+  let authToken: string;
+  let createdUrlId: number;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
+    postgresContainer = await new PostgreSqlContainer(
+      'mirror2.chabokan.net/postgres:16-alpine',
+    ).start();
+
+    process.env.DB_HOST = postgresContainer.getHost();
+    process.env.DB_PORT = postgresContainer.getPort().toString();
+    process.env.DB_USER = postgresContainer.getUsername();
+    process.env.DB_PASS = postgresContainer.getPassword();
+    process.env.DB_NAME = postgresContainer.getDatabase();
+    process.env.REDIS_URL = 'redis://localhost:6379';
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(new ValidationPipe());
     await app.init();
+  }, 60000 * 3); // زمان اضافه برای بالا آمدن کانتینر
+
+  afterAll(async () => {
+    await app.close();
+    await postgresContainer.stop();
   });
 
   it('/ (GET)', () => {

@@ -4,17 +4,17 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Base62Converter } from 'src/common/utils/base62.converter';
+import { Base62Converter } from '../../common/utils/base62.converter';
 import { Repository } from 'typeorm';
 import { Url } from './entities/url.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   assertUrlIsSafe,
   UnsafeUrlError,
-} from 'src/common/utils/url-security.util';
+} from '../../common/utils/url-security.util';
 import { User } from '../user/entities/user.entity';
-import { RedisService } from 'src/redis/redis.service';
-import { RedisUrlData } from 'src/redis/types';
+import { RedisService } from '../../redis/redis.service';
+import { RedisUrlData } from '../../redis/types';
 
 @Injectable()
 export class UrlService {
