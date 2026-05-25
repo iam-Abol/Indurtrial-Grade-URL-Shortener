@@ -45,4 +45,11 @@ describe('App E2E Integration Tests', () => {
       .expect(200)
       .expect('Hello World!');
   });
+  it('1. POST /auth/signup -> 201', () => {
+    const randomEmail = `test-${Math.random()}@example.com`;
+    return request(app.getHttpServer())
+      .post('/auth/signup')
+      .send({ email: randomEmail, password: 'password123' })
+      .expect(201);
+  });
 });
