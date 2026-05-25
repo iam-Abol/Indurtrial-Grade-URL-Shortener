@@ -41,6 +41,6 @@ export class UrlController {
   @Get(':code')
   async redirect(@Param('code') code: string, @Res() res: express.Response) {
     const url = await this.urlService.redirect(code);
-    return res.redirect(302, url.longUrl);
+    return res.redirect(302, url);
   }
 }

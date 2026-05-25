@@ -13,12 +13,18 @@ import {
   UnsafeUrlError,
 } from 'src/common/utils/url-security.util';
 import { User } from '../user/entities/user.entity';
+import { RedisService } from 'src/redis/redis.service';
+import { RedisUrlData } from 'src/redis/types';
 
 @Injectable()
 export class UrlService {
+  private readonly HOT_THRESHOLD = 10;
+  private readonly CACHE_TTL = 3600;
+  private readonly HITS_TTL = 1800;
   constructor(
     @InjectRepository(Url)
     private readonly urlRepo: Repository<Url>,
+    private redisService: RedisService,
   ) {}
   async create(url: Partial<Url>): Promise<Url> {
     const entity = this.urlRepo.create(url);
@@ -53,13 +59,41 @@ export class UrlService {
     return this.urlRepo.findOne({ where: { customAlias: alias } });
   }
   async redirect(shortCode: string) {
+    const cacheKey = `url:${shortCode}`;
+    const hitsKey = `url:${shortCode}:hits:30m`;
+
+    const cachedData = await this.redisService.get(cacheKey);
+
+    if (cachedData) {
+      console.log('redis hit');
+      this.trackHit(hitsKey);
+      const parsed = JSON.parse(cachedData) as RedisUrlData;
+      if (parsed.expireAt && new Date(parsed.expireAt) < new Date()) {
+        await this.redisService.del(cacheKey);
+        throw new NotFoundException('Url expired');
+      }
+      return parsed.longUrl;
+    }
     const url = await this.findByShortCode(shortCode);
     if (!url) throw new NotFoundException('Url not found');
+
     if (url.expire_at && url.expire_at < new Date()) {
       throw new NotFoundException('Url  expired');
     }
+
+    const currentHits = await this.trackHit(hitsKey);
+    if (currentHits >= this.HOT_THRESHOLD) {
+      await this.redisService.setEx(
+        cacheKey,
+        this.CACHE_TTL,
+        JSON.stringify({
+          longUrl: url.longUrl,
+          expireAt: url.expire_at,
+        }),
+      );
+    }
     // TODO -> click rate with a queue
-    return url;
+    return url.longUrl;
   }
   async shorten(
     longUrl: string,
@@ -88,6 +122,9 @@ export class UrlService {
     } catch (error) {
       throw new InternalServerErrorException('Failed to shorten URL');
     }
+  }
+  private async trackHit(key: string): Promise<number> {
+    return await this.redisService.incrAndExpire(key, this.HITS_TTL);
   }
   async delete(id: number, userId: number) {
     const url = await this.urlRepo.findOne({

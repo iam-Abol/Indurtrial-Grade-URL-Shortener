@@ -17,8 +17,11 @@ export class RedisService {
   async del(key: string): Promise<void> {
     await this.client.del(key);
   }
-  async increment(key: string, step = 1): Promise<number> {
-    if (step === 1) return this.client.incr(key);
-    return this.client.incrBy(key, step);
+
+  async incrAndExpire(key: string, seconds: number) {
+    const newValue = await this.client.incr(key);
+    await this.client.expire(key, seconds, 'NX');
+
+    return newValue;
   }
 }
