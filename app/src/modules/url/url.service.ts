@@ -62,11 +62,17 @@ export class UrlService {
     const cacheKey = `url:${shortCode}`;
     const hitsKey = `url:${shortCode}:hits:30m`;
 
-    const cachedData = await this.redisService.get(cacheKey);
+    let cachedData: string | null = null;
+
+    try {
+      cachedData = await this.redisService.get(cacheKey);
+    } catch (error) {
+      console.error('Redis is down, falling back to DB', error);
+    }
 
     if (cachedData) {
       console.log('redis hit');
-      this.trackHit(hitsKey);
+      this.trackHit(hitsKey).catch(() => {});
       const parsed = JSON.parse(cachedData) as RedisUrlData;
       if (parsed.expireAt && new Date(parsed.expireAt) < new Date()) {
         await this.redisService.del(cacheKey);
@@ -83,14 +89,18 @@ export class UrlService {
 
     const currentHits = await this.trackHit(hitsKey);
     if (currentHits >= this.HOT_THRESHOLD) {
-      await this.redisService.setEx(
-        cacheKey,
-        this.CACHE_TTL,
-        JSON.stringify({
-          longUrl: url.longUrl,
-          expireAt: url.expire_at,
-        }),
-      );
+      try {
+        await this.redisService.setEx(
+          cacheKey,
+          this.CACHE_TTL,
+          JSON.stringify({
+            longUrl: url.longUrl,
+            expireAt: url.expire_at,
+          }),
+        );
+      } catch (err) {
+        console.error('Failed to save to Redis', err);
+      }
     }
     // TODO -> click rate with a queue
     return url.longUrl;
@@ -137,6 +147,19 @@ export class UrlService {
       );
     }
 
-    return await this.urlRepo.softDelete(id);
+    try {
+      await this.urlRepo.softDelete(id);
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to delete');
+    }
+    const { shortCode } = url;
+    const cacheKey = `url:${shortCode}`;
+    const hitsKey = `url:${shortCode}:hits:30m`;
+    try {
+      await this.redisService.del(cacheKey);
+      await this.redisService.del(hitsKey);
+    } catch (error) {
+      console.log('failed to delete from redis');
+    }
   }
 }
