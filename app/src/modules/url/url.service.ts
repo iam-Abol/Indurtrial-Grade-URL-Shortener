@@ -108,7 +108,7 @@ export class UrlService {
   async shorten(
     longUrl: string,
     userId: number,
-  ): Promise<{ shortUrl: string }> {
+  ): Promise<{ shortUrl: string; id: number }> {
     try {
       await assertUrlIsSafe(longUrl);
     } catch (err) {
@@ -128,6 +128,7 @@ export class UrlService {
 
       return {
         shortUrl: `${domain}/${shortCode}`,
+        id: createdUrl.id,
       };
     } catch (error) {
       throw new InternalServerErrorException('Failed to shorten URL');
