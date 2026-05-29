@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, OnModuleInit } from '@nestjs/common';
 
 import { BloomFilter } from 'bloom-filters';
 
@@ -10,7 +10,10 @@ export class BloomFilterService implements OnModuleInit {
 
   private readonly EXPECTED_ITEMS = 10_000_000;
   private readonly FALSE_POSITIVE_RATE = 0.01;
-  constructor(private urlService: UrlService) {
+  constructor(
+    @Inject(forwardRef(() => UrlService))
+    private urlService: UrlService,
+  ) {
     this.filter = BloomFilter.create(
       this.EXPECTED_ITEMS,
       this.FALSE_POSITIVE_RATE,
@@ -18,6 +21,7 @@ export class BloomFilterService implements OnModuleInit {
   }
   async onModuleInit() {
     console.log('Hydrating Bloom Filter...');
+    // TODO => memory overflow -> pagination
     const allCodes = await this.urlService.getShortCodes();
     allCodes.forEach((u) => this.filter.add(u.shortCode));
     console.log(`Bloom Filter ready with ${allCodes.length} codes.`);

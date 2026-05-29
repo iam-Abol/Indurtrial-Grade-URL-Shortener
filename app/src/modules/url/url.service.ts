@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -15,6 +17,7 @@ import {
 import { User } from '../user/entities/user.entity';
 import { RedisService } from '../../redis/redis.service';
 import { RedisUrlData } from '../../redis/types';
+import { BloomFilterService } from '../bloom-filter/bloom-filter.service';
 
 @Injectable()
 export class UrlService {
@@ -25,6 +28,8 @@ export class UrlService {
     @InjectRepository(Url)
     private readonly urlRepo: Repository<Url>,
     private redisService: RedisService,
+    @Inject(forwardRef(() => BloomFilterService))
+    private bloomService: BloomFilterService,
   ) {}
   async create(url: Partial<Url>): Promise<Url> {
     const entity = this.urlRepo.create(url);
@@ -59,6 +64,13 @@ export class UrlService {
     return this.urlRepo.findOne({ where: { customAlias: alias } });
   }
   async redirect(shortCode: string) {
+    if (!this.bloomService.mightContain(shortCode)) {
+      console.log(`Bloom Filter: ${shortCode} definitely does not exist.`);
+      throw new NotFoundException('Url not found');
+    }
+
+    //
+    //
     const cacheKey = `url:${shortCode}`;
     const hitsKey = `url:${shortCode}:hits:30m`;
 
@@ -78,7 +90,6 @@ export class UrlService {
         await this.redisService.del(cacheKey);
         throw new NotFoundException('Url expired');
       }
-      this.trackHit(hitsKey).catch(() => {});
 
       return parsed.longUrl;
     }
@@ -130,7 +141,7 @@ export class UrlService {
       const shortCode = Base62Converter.encode(createdUrl.id);
       await this.updateShortCode(createdUrl.id, shortCode);
       const domain = process.env.SHORTENER_DOMAIN || 'http://localhost:3000';
-
+      this.bloomService.add(shortCode);
       return {
         shortUrl: `${domain}/${shortCode}`,
         id: createdUrl.id,
