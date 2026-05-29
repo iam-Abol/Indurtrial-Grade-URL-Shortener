@@ -197,4 +197,7 @@ export class UrlService {
 
     return Math.max(ttl, 1);
   }
+  getShortCodes() {
+    return this.urlRepo.find({ select: ['shortCode'] });
+  }
 }
