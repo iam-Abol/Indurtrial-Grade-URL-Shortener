@@ -8,6 +8,7 @@ import { RedisModule } from './redis/redis.module';
 import { QueueModule } from './queue/queue.module';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { BloomFilterModule } from './modules/bloom-filter/bloom-filter.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AuthModule } from './modules/auth/auth.module';
     QueueModule,
     RedisModule,
     AuthModule,
+    BloomFilterModule,
   ],
   controllers: [AppController],
   providers: [AppService],
