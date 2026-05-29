@@ -71,6 +71,19 @@ export class UrlService {
 
     //
     //
+    let nonExistent: null | string = null;
+    try {
+      nonExistent = await this.redisService.get(`url:nonexistent:${shortCode}`);
+    } catch (error) {
+      console.error(
+        'Redis negative cache read failed, falling back to DB',
+        error,
+      );
+    }
+
+    if (nonExistent) {
+      throw new NotFoundException('Url not found');
+    }
     const cacheKey = `url:${shortCode}`;
     const hitsKey = `url:${shortCode}:hits:30m`;
 
@@ -87,14 +100,30 @@ export class UrlService {
       this.trackHit(hitsKey).catch(() => {});
       const parsed = JSON.parse(cachedData) as RedisUrlData;
       if (parsed.expireAt && new Date(parsed.expireAt) < new Date()) {
-        await this.redisService.del(cacheKey);
+        try {
+          await this.redisService.del(cacheKey);
+        } catch (error) {
+          console.error('Failed to delete expired cache key', error);
+        }
         throw new NotFoundException('Url expired');
       }
 
       return parsed.longUrl;
     }
+
     const url = await this.findByShortCode(shortCode);
-    if (!url) throw new NotFoundException('Url not found');
+    if (!url) {
+      try {
+        await this.redisService.setEx(
+          `url:nonexistent:${shortCode}`,
+          300,
+          'NOT_FOUND',
+        );
+      } catch (error) {
+        console.error('Failed to save negative cache', error);
+      }
+      throw new NotFoundException('Url not found');
+    }
 
     if (url.expire_at && url.expire_at < new Date()) {
       throw new NotFoundException('Url  expired');
