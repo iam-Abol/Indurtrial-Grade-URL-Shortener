@@ -78,6 +78,8 @@ export class UrlService {
         await this.redisService.del(cacheKey);
         throw new NotFoundException('Url expired');
       }
+      this.trackHit(hitsKey).catch(() => {});
+
       return parsed.longUrl;
     }
     const url = await this.findByShortCode(shortCode);
@@ -89,17 +91,20 @@ export class UrlService {
 
     const currentHits = await this.trackHit(hitsKey);
     if (currentHits >= this.HOT_THRESHOLD) {
-      try {
-        await this.redisService.setEx(
-          cacheKey,
-          this.CACHE_TTL,
-          JSON.stringify({
-            longUrl: url.longUrl,
-            expireAt: url.expire_at,
-          }),
-        );
-      } catch (err) {
-        console.error('Failed to save to Redis', err);
+      const ttl = this.computeCacheTtl(url.expire_at);
+      if (ttl) {
+        try {
+          await this.redisService.setEx(
+            cacheKey,
+            ttl,
+            JSON.stringify({
+              longUrl: url.longUrl,
+              expireAt: url.expire_at,
+            }),
+          );
+        } catch (err) {
+          console.error('Failed to save to Redis', err);
+        }
       }
     }
     // TODO -> click rate with a queue
