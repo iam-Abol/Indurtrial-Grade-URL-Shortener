@@ -163,4 +163,33 @@ export class UrlService {
       console.log('failed to delete from redis');
     }
   }
+  computeCacheTtl(expire_at: Date | null) {
+    const baseTtl = this.CACHE_TTL;
+    if (expire_at) {
+      const secondsUntilExpire = Math.floor(
+        (expire_at.getTime() - Date.now()) / 1000,
+      );
+      if (secondsUntilExpire <= 0) {
+        return null;
+      }
+      let ttl = Math.min(baseTtl, secondsUntilExpire);
+      if (ttl < 5) {
+        return null;
+      }
+      const jitter = Math.floor(ttl * Math.random() * 0.1);
+      ttl = ttl - jitter;
+
+      return Math.max(ttl, 1);
+    }
+    let ttl = baseTtl;
+
+    if (ttl < 5) {
+      return null;
+    }
+
+    const jitter = Math.floor(ttl * Math.random() * 0.1);
+    ttl = ttl - jitter;
+
+    return Math.max(ttl, 1);
+  }
 }
