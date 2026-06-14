@@ -11,6 +11,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
+@Index(['user', 'created_at'])
 @Entity()
 export class Url {
   @PrimaryGeneratedColumn()
@@ -32,6 +33,7 @@ export class Url {
   @CreateDateColumn()
   created_at: Date;
 
+  @Index()
   @Column({
     type: 'timestamp',
     nullable: true,
