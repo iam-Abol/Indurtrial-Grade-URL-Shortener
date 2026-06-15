@@ -17,8 +17,10 @@ export class ClickAnalytics {
   @ManyToOne(() => Url, (url) => url.ClickAnalytics)
   url: Url;
 
-  @Column({ type: 'varchar', length: 45 })
-  ip: string;
+  @Column()
+  url_id: number;
+  @Column({ length: 64 })
+  ip_hash: string;
 
   @CreateDateColumn()
   timestamp: Date;
@@ -33,8 +35,13 @@ export class ClickAnalytics {
   browser: string;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
-  device: string;
+  device_type: string;
 
-  @Column({ type: 'text', nullable: true })
-  referer: string;
+  @Column({ type: 'varchar', length: 255 })
+  referer_domain: string;
+  @Column({ default: false })
+  is_bot: boolean;
+
+  @Column({ type: 'varchar', length: 45 })
+  os: string;
 }
