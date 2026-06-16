@@ -18,6 +18,8 @@ import { User } from '../user/entities/user.entity';
 import { RedisService } from '../../redis/redis.service';
 import { RedisUrlData } from '../../redis/types';
 import { BloomFilterService } from '../bloom-filter/bloom-filter.service';
+import { AnalyticsProducerService } from 'src/queue/analytics/analytics-producer.service';
+import { Request } from 'express';
 
 @Injectable()
 export class UrlService {
@@ -30,6 +32,7 @@ export class UrlService {
     private redisService: RedisService,
     @Inject(forwardRef(() => BloomFilterService))
     private bloomService: BloomFilterService,
+    private readonly analyticsProducer: AnalyticsProducerService,
   ) {}
   async create(url: Partial<Url>): Promise<Url> {
     const entity = this.urlRepo.create(url);
@@ -63,14 +66,25 @@ export class UrlService {
   async findByCustomAlias(alias: string) {
     return this.urlRepo.findOne({ where: { customAlias: alias } });
   }
+  private async trackAnalytics(urlId: number, request: Request) {
+    try {
+      await this.analyticsProducer.enqueueClick({
+        urlId,
+        ip: request.ip ?? '',
+        userAgent: request.headers['user-agent'] ?? '',
+        referer: request.headers.referer ?? '',
+        timestamp: new Date(),
+      });
+    } catch (error) {
+      console.error('failed to add analytics to queue');
+    }
+  }
   async redirect(shortCode: string) {
     if (!this.bloomService.mightContain(shortCode)) {
       console.log(`Bloom Filter: ${shortCode} definitely does not exist.`);
       throw new NotFoundException('Url not found');
     }
 
-    //
-    //
     let nonExistent: null | string = null;
     try {
       nonExistent = await this.redisService.get(`url:nonexistent:${shortCode}`);
@@ -138,6 +152,8 @@ export class UrlService {
             cacheKey,
             ttl,
             JSON.stringify({
+              id: url.id,
+
               longUrl: url.longUrl,
               expireAt: url.expire_at,
             }),
