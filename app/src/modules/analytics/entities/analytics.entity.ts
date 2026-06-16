@@ -4,6 +4,7 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -15,10 +16,9 @@ export class ClickAnalytics {
 
   @Index()
   @ManyToOne(() => Url, (url) => url.ClickAnalytics)
+  @JoinColumn({ name: 'url_id' })
   url: Url;
 
-  @Column()
-  url_id: number;
   @Column({ length: 64 })
   ip_hash: string;
 
