@@ -1,46 +1,46 @@
-problem: 
+problem:
 it gets a long url -> the service creates an alias with shorter length -> if u click the url you will be redirected to the original url
-* as short as possible 
-base 62 -> 0-9 & a-z & A-Z
 
-architecture diagram : 
+- as short as possible
+  base 62 -> 0-9 & a-z & A-Z
+
+architecture diagram :
 Client → API Gateway / Backend Service
-Backend Service →  Cache (Redis) / Database (PostgreSQL)
+Backend Service → Cache (Redis) / Database (PostgreSQL)
 
 Components:
+
 - API Server: nest
-- Database: postgres(Prisma Orm)
+- Database: postgres(TypeOrm)
 - Cache: Redis
-- Message Queue: RabbitMQ
+- Message Queue: Bullmq
 
+Api endpoints:
 
-
-
-
-Api endpoints: 
-
-POST api/v1/shorten 
+POST api/v1/shorten
 body:
 {
-  "longUrl": "https://example.com"
+"longUrl": "https://example.com"
 }
 • return shortURL
 
-GET /:shortUrl -> return longUrl and then redirects -> 301 because it is seo friendly and its permanent maybe 302  for click rate? 🤷‍♂️ decision: 302 for click tracking (maybe a combination of both ) 
+GET /:shortUrl -> return longUrl and then redirects -> 301 because it is seo friendly and its permanent maybe 302 for click rate? 🤷‍♂️ decision: 302 for click tracking (maybe a combination of both )
 
-** click rate + validate urls
-database tables: 
+\*\* click rate + validate urls
+database tables:
 
-user: 
+user:
+
 - id
 - email
 - password_hash
 - created_at
 - updated_at
 - delete_at
-optional :(- isVerifiend -> send emali)
+  optional :(- isVerifiend -> send emali)
 
 url
+
 - id
 - user_id
 - shortUrl -> length() = 6 (62^6 = 56B)
@@ -49,7 +49,7 @@ url
 - expires_at (optional)
 - click_count
 - delete_at
-ClickAnalytics -> write heavy -> probably needs a seperated db
+  ClickAnalytics -> write heavy -> probably needs a seperated db
 - id
 - url id
 - ip
@@ -57,8 +57,7 @@ ClickAnalytics -> write heavy -> probably needs a seperated db
 - country
 - user_agent -> browser + device
 - referer
-rate limit -> 5 request per ip per second
-
+  rate limit -> 5 request per ip per second
 
 shorten flow
 1 client send long url

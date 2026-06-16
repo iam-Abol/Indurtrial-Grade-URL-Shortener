@@ -9,6 +9,7 @@ import { QueueModule } from './queue/queue.module';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BloomFilterModule } from './modules/bloom-filter/bloom-filter.module';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -20,6 +21,12 @@ import { BloomFilterModule } from './modules/bloom-filter/bloom-filter.module';
     RedisModule,
     AuthModule,
     BloomFilterModule,
+    BullModule.forRoot({
+      connection: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
