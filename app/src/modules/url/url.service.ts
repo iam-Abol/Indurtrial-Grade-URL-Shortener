@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { Base62Converter } from '../../common/utils/base62.converter';
@@ -27,6 +28,7 @@ export class UrlService {
   private readonly HOT_THRESHOLD = 10;
   private readonly CACHE_TTL = 3600;
   private readonly HITS_TTL = 1800;
+  private readonly logger = new Logger(UrlService.name);
   constructor(
     @InjectRepository(Url)
     private readonly urlRepo: Repository<Url>,
@@ -67,9 +69,9 @@ export class UrlService {
   async findByCustomAlias(alias: string) {
     return this.urlRepo.findOne({ where: { customAlias: alias } });
   }
-  private async trackAnalytics(urlId: number, metadata: RedirectMetadata) {
+  private trackAnalytics(urlId: number, metadata: RedirectMetadata) {
     try {
-      await this.analyticsProducer.enqueueClick({
+      this.analyticsProducer.enqueueClick({
         urlId,
         ip: metadata.ip ?? '',
         userAgent: metadata.userAgent,
@@ -77,7 +79,10 @@ export class UrlService {
         timestamp: new Date(),
       });
     } catch (error) {
-      console.error('failed to add analytics to queue');
+      this.logger.error(
+        'Failed to add analytics to queue',
+        error instanceof Error ? error.stack : '',
+      );
     }
   }
   async redirect(shortCode: string, redirectMetadata: RedirectMetadata) {
@@ -114,6 +119,7 @@ export class UrlService {
       console.log('redis hit');
       this.trackHit(hitsKey).catch(() => {});
       const parsed = JSON.parse(cachedData) as RedisUrlData;
+
       if (parsed.expireAt && new Date(parsed.expireAt) < new Date()) {
         try {
           await this.redisService.del(cacheKey);
@@ -122,6 +128,7 @@ export class UrlService {
         }
         throw new NotFoundException('Url expired');
       }
+      this.trackAnalytics(parsed.id, redirectMetadata);
 
       return parsed.longUrl;
     }
@@ -165,6 +172,7 @@ export class UrlService {
       }
     }
     // TODO -> click rate with a queue
+    this.trackAnalytics(url.id, redirectMetadata);
     return url.longUrl;
   }
   async shorten(

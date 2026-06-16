@@ -11,6 +11,7 @@ export class AnalyticsService {
     private repo: Repository<ClickAnalytics>,
   ) {}
   async createClick(event: ClickAnalyticsEvent) {
+    console.log(event.ip);
     const click = this.repo.create({
       url: { id: event.urlId },
       ip_hash: event.ip,
