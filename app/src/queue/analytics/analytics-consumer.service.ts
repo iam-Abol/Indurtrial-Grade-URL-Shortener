@@ -9,6 +9,6 @@ export class AnalyticsConsumer extends WorkerHost {
   private readonly logger = new Logger(AnalyticsConsumer.name);
 
   async process(job: Job<ClickAnalyticsEvent>): Promise<any> {
-    this.logger.log(job.data);
+    this.logger.log(job.name, job.data);
   }
 }
