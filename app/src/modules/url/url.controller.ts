@@ -15,6 +15,7 @@ import { UrlService } from './url.service';
 import { CreateShortUrlDto } from './dtos/CreateShortUrl.dto';
 import express from 'express';
 import { JwtAuthGuard } from '../auth/passport/jwt-auth.guard';
+import { RedirectMetadata } from './interfaces/redirect-metadata.interface';
 
 @Controller('')
 export class UrlController {
@@ -39,8 +40,17 @@ export class UrlController {
   }
 
   @Get(':code')
-  async redirect(@Param('code') code: string, @Res() res: express.Response) {
-    const url = await this.urlService.redirect(code);
+  async redirect(
+    @Param('code') code: string,
+    @Res() res: express.Response,
+    @Req() req: express.Request,
+  ) {
+    const metadata: RedirectMetadata = {
+      ip: req.ip ?? '',
+      userAgent: req.headers['user-agent'] ?? '',
+      referer: req.headers.referer ?? '',
+    };
+    const url = await this.urlService.redirect(code, metadata);
     return res.redirect(302, url);
   }
 }

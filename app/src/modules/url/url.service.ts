@@ -20,6 +20,7 @@ import { RedisUrlData } from '../../redis/types';
 import { BloomFilterService } from '../bloom-filter/bloom-filter.service';
 import { AnalyticsProducerService } from 'src/queue/analytics/analytics-producer.service';
 import { Request } from 'express';
+import { RedirectMetadata } from './interfaces/redirect-metadata.interface';
 
 @Injectable()
 export class UrlService {
@@ -66,20 +67,20 @@ export class UrlService {
   async findByCustomAlias(alias: string) {
     return this.urlRepo.findOne({ where: { customAlias: alias } });
   }
-  private async trackAnalytics(urlId: number, request: Request) {
+  private async trackAnalytics(urlId: number, metadata: RedirectMetadata) {
     try {
       await this.analyticsProducer.enqueueClick({
         urlId,
-        ip: request.ip ?? '',
-        userAgent: request.headers['user-agent'] ?? '',
-        referer: request.headers.referer ?? '',
+        ip: metadata.ip ?? '',
+        userAgent: metadata.userAgent,
+        referer: metadata.referer ?? '',
         timestamp: new Date(),
       });
     } catch (error) {
       console.error('failed to add analytics to queue');
     }
   }
-  async redirect(shortCode: string) {
+  async redirect(shortCode: string, redirectMetadata: RedirectMetadata) {
     if (!this.bloomService.mightContain(shortCode)) {
       console.log(`Bloom Filter: ${shortCode} definitely does not exist.`);
       throw new NotFoundException('Url not found');
