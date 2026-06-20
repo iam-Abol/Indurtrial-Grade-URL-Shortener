@@ -42,4 +42,18 @@ export class AnalyticsService {
 
     await this.repo.save(click);
   }
+
+  async getClicksLastDays(urlId: number, days: number) {
+    const since = new Date();
+
+    since.setDate(since.getDate() - days);
+
+    return this.repo
+      .createQueryBuilder('click')
+      .where('click.url_id = :urlId', {
+        urlId,
+      })
+      .andWhere('click.timestamp >= :since', { since })
+      .getCount();
+  }
 }
