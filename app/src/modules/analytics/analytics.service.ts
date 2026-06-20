@@ -3,6 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ClickAnalytics } from './entities/analytics.entity';
 import { Repository } from 'typeorm';
 import { ClickAnalyticsEvent } from 'src/queue/events/ClickAnalyticsEvent';
+import {
+  detectBrowser,
+  detectDevice,
+  detectOS,
+  extractDomain,
+  hashIp,
+} from './helpers/util';
+import { Url } from '../url/entities/url.entity';
 
 @Injectable()
 export class AnalyticsService {
@@ -11,27 +19,26 @@ export class AnalyticsService {
     private repo: Repository<ClickAnalytics>,
   ) {}
   async createClick(event: ClickAnalyticsEvent) {
-    console.log(event.ip);
-    const click = this.repo.create({
-      url: { id: event.urlId },
-      ip_hash: event.ip,
+    const ua = event.userAgent || '';
+    const referer = event.referer || '';
 
-      timestamp: event.timestamp,
+    const browser = detectBrowser(ua);
+    const os = detectOS(ua);
+    const device_type = detectDevice(ua);
+    const referer_domain = extractDomain(referer);
+    const is_bot = /bot|crawler|spider/i.test(ua);
 
-      user_agent: event.userAgent,
+    const click = new ClickAnalytics();
 
-      referer_domain: event.referer,
-
-      browser: '',
-
-      os: '',
-
-      device_type: '',
-
-      country: '',
-
-      is_bot: false,
-    });
+    click.url = { id: event.urlId } as Url;
+    click.ip_hash = hashIp(event.ip);
+    click.user_agent = event.userAgent;
+    click.browser = browser;
+    click.os = os;
+    click.device_type = device_type;
+    click.country = '';
+    click.is_bot = is_bot;
+    click.referer_domain = referer_domain || '';
 
     await this.repo.save(click);
   }
