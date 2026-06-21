@@ -1,8 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { RedisClientType } from 'redis';
+import { TooManyRequestsException } from 'src/errors/TooManyRequestsException';
 
 @Injectable()
 export class RedisService {
+  private readonly logger = new Logger(RedisService.name);
   constructor(
     @Inject('REDIS_CLIENT')
     private readonly client: RedisClientType,
@@ -38,5 +40,20 @@ export class RedisService {
       await this.client.expire(key, ttlSeconds);
     }
     return count <= limit;
+  }
+  async enforceRateLimit(key: string, limit: number, ttl: number) {
+    let allowed: boolean;
+    try {
+      allowed = await this.checkRateLimit(key, limit, ttl);
+    } catch {
+      this.logger.error('failed to get rate limt from redis - it is down');
+      return;
+    }
+    if (!allowed) {
+      const retryAfter = await this.getTtl(key);
+      throw new TooManyRequestsException(
+        `Rate limit exceeded retry after: ${retryAfter} seconds`,
+      );
+    }
   }
 }
