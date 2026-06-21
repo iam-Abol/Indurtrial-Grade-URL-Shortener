@@ -41,18 +41,28 @@ export class RedisService {
     }
     return count <= limit;
   }
-  async enforceRateLimit(key: string, limit: number, ttl: number) {
+
+  async enforceRateLimit(
+    key: string,
+    limit: number,
+    ttl: number,
+    options?: { failOpen?: boolean },
+  ) {
     let allowed: boolean;
     try {
       allowed = await this.checkRateLimit(key, limit, ttl);
-    } catch {
-      this.logger.error('failed to get rate limt from redis - it is down');
-      return;
+    } catch (err) {
+      this.logger.error('Redis rate limit failed', err);
+
+      if (options?.failOpen) return;
+
+      throw new TooManyRequestsException('Rate limiter unavailable');
     }
+
     if (!allowed) {
-      const retryAfter = await this.getTtl(key);
+      const retryAfter = Math.max(0, await this.getTtl(key));
       throw new TooManyRequestsException(
-        `Rate limit exceeded retry after: ${retryAfter} seconds`,
+        `Rate limit exceeded retry after: ${retryAfter}s`,
       );
     }
   }

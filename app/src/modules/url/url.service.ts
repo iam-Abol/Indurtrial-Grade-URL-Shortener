@@ -88,7 +88,7 @@ export class UrlService {
   }
   async redirect(shortCode: string, redirectMetadata: RedirectMetadata) {
     const key = `rate:redirect:${redirectMetadata.ip}`;
-    await this.redisService.enforceRateLimit(key, 3, 60);
+    await this.redisService.enforceRateLimit(key, 3, 60, { failOpen: true });
 
     if (!this.bloomService.mightContain(shortCode)) {
       console.log(`Bloom Filter: ${shortCode} definitely does not exist.`);
@@ -183,6 +183,8 @@ export class UrlService {
     longUrl: string,
     userId: number,
   ): Promise<{ shortUrl: string; id: number }> {
+    const key = `rate:create:${userId}`;
+    await this.redisService.enforceRateLimit(key, 100, 60);
     try {
       await assertUrlIsSafe(longUrl);
     } catch (err) {
@@ -204,7 +206,7 @@ export class UrlService {
         shortUrl: `${domain}/${shortCode}`,
         id: createdUrl.id,
       };
-    } catch (error) {
+    } catch {
       throw new InternalServerErrorException('Failed to shorten URL');
     }
   }
@@ -224,7 +226,7 @@ export class UrlService {
 
     try {
       await this.urlRepo.softDelete(id);
-    } catch (error) {
+    } catch {
       throw new InternalServerErrorException('Failed to delete');
     }
     const { shortCode } = url;
@@ -233,7 +235,7 @@ export class UrlService {
     try {
       await this.redisService.del(cacheKey);
       await this.redisService.del(hitsKey);
-    } catch (error) {
+    } catch {
       console.log('failed to delete from redis');
     }
   }
