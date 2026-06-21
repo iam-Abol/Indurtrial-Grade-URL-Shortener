@@ -24,4 +24,16 @@ export class RedisService {
 
     return newValue;
   }
+
+  async checkRateLimit(
+    key: string,
+    limit: number,
+    ttlSeconds: number,
+  ): Promise<boolean> {
+    const count = await this.client.incr(key);
+    if (count === 1) {
+      await this.client.expire(key, ttlSeconds);
+    }
+    return limit <= count;
+  }
 }
