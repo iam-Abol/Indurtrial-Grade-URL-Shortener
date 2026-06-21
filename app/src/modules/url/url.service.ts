@@ -22,6 +22,7 @@ import { BloomFilterService } from '../bloom-filter/bloom-filter.service';
 import { AnalyticsProducerService } from 'src/queue/analytics/analytics-producer.service';
 import { Request } from 'express';
 import { RedirectMetadata } from './interfaces/redirect-metadata.interface';
+import { TooManyRequestsException } from 'src/errors/TooManyRequestsException';
 
 @Injectable()
 export class UrlService {
@@ -92,7 +93,7 @@ export class UrlService {
       3, // 30 requests
       60, // per minute
     );
-    if (!allowed) throw new BadRequestException('Rate limit exceeded');
+    if (!allowed) throw new TooManyRequestsException('Rate limit exceeded');
 
     if (!this.bloomService.mightContain(shortCode)) {
       console.log(`Bloom Filter: ${shortCode} definitely does not exist.`);
