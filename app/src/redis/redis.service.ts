@@ -8,6 +8,9 @@ export class RedisService {
     private readonly client: RedisClientType,
   ) {}
 
+  async getTtl(key: string): Promise<number> {
+    return this.client.ttl(key);
+  }
   async get(key: string): Promise<string | null> {
     return this.client.get(key);
   }

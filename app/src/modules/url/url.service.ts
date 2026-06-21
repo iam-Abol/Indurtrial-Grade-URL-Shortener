@@ -87,13 +87,18 @@ export class UrlService {
     }
   }
   async redirect(shortCode: string, redirectMetadata: RedirectMetadata) {
-    const key = `rate:${redirectMetadata.ip}`;
+    const key = `rate:redirect:${redirectMetadata.ip}`;
     const allowed = await this.redisService.checkRateLimit(
       key,
       3, // 30 requests
       60, // per minute
     );
-    if (!allowed) throw new TooManyRequestsException('Rate limit exceeded');
+    if (!allowed) {
+      const retryAfter = await this.redisService.getTtl(key);
+      throw new TooManyRequestsException(
+        `Rate limit exceeded retry after: ${retryAfter} seconds`,
+      );
+    }
 
     if (!this.bloomService.mightContain(shortCode)) {
       console.log(`Bloom Filter: ${shortCode} definitely does not exist.`);
