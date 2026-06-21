@@ -34,6 +34,6 @@ export class RedisService {
     if (count === 1) {
       await this.client.expire(key, ttlSeconds);
     }
-    return limit <= count;
+    return count <= limit;
   }
 }
