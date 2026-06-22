@@ -11,7 +11,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Index(['user', 'created_at'])
+@Index(['user', 'createdAt'])
 @Entity()
 export class Url {
   @PrimaryGeneratedColumn()
@@ -31,20 +31,20 @@ export class Url {
   longUrl: string;
 
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
   @Index()
   @Column({
     type: 'timestamp',
     nullable: true,
   })
-  expire_at: Date;
+  expireAt: Date;
 
   @Column({ default: 0 })
   click_count: number;
 
   @DeleteDateColumn({ nullable: true })
-  deleted_at: Date;
+  deletedAt: Date;
 
   @OneToMany(() => ClickAnalytics, (ClickAnalytics) => ClickAnalytics.url)
   ClickAnalytics: ClickAnalytics[];

@@ -1,4 +1,4 @@
-import { IsUrl } from 'class-validator';
+import { IsInt, IsOptional, IsUrl, Max, Min } from 'class-validator';
 
 export class CreateShortUrlDto {
   @IsUrl(
@@ -11,4 +11,9 @@ export class CreateShortUrlDto {
     },
   )
   longUrl: string;
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(365)
+  expiresInDays?: number = 7;
 }

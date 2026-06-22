@@ -47,13 +47,13 @@ export class UrlService {
       where: {
         user: { id: userId },
       },
-      order: { created_at: 'DESC' },
+      order: { createdAt: 'DESC' },
       select: {
         id: true,
         shortCode: true,
         longUrl: true,
-        created_at: true,
-        expire_at: true,
+        createdAt: true,
+        expireAt: true,
         click_count: true,
       },
     });
@@ -151,13 +151,13 @@ export class UrlService {
       throw new NotFoundException('Url not found');
     }
 
-    if (url.expire_at && url.expire_at < new Date()) {
+    if (url.expireAt && url.expireAt < new Date()) {
       throw new NotFoundException('Url  expired');
     }
 
     const currentHits = await this.trackHit(hitsKey);
     if (currentHits >= this.HOT_THRESHOLD) {
-      const ttl = this.computeCacheTtl(url.expire_at);
+      const ttl = this.computeCacheTtl(url.expireAt);
       if (ttl) {
         try {
           await this.redisService.setEx(
@@ -167,7 +167,7 @@ export class UrlService {
               id: url.id,
 
               longUrl: url.longUrl,
-              expireAt: url.expire_at,
+              expireAt: url.expireAt,
             }),
           );
         } catch (err) {
@@ -182,6 +182,7 @@ export class UrlService {
   async shorten(
     longUrl: string,
     userId: number,
+    expiresInDays?: number,
   ): Promise<{ shortUrl: string; id: number }> {
     const key = `rate:create:${userId}`;
     await this.redisService.enforceRateLimit(key, 100, 60);
@@ -193,9 +194,16 @@ export class UrlService {
       }
       throw err;
     }
+    if (expiresInDays && expiresInDays > 365) {
+      throw new BadRequestException('Maximum expiration is 365 days');
+    }
+    const expireAt = new Date();
+    expireAt.setDate(expireAt.getDate() + expiresInDays!);
+
     try {
       const createdUrl = await this.create({
         longUrl,
+        expireAt,
         user: { id: userId } as User,
       });
       const shortCode = Base62Converter.encode(createdUrl.id);

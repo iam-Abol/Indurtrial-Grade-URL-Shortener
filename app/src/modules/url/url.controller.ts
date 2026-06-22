@@ -24,8 +24,8 @@ export class UrlController {
   @Post('shorten')
   @UseGuards(JwtAuthGuard)
   shorten(@Body() body: CreateShortUrlDto, @Req() req) {
-    const { longUrl } = body;
-    return this.urlService.shorten(longUrl, req.user.userId);
+    const { longUrl, expiresInDays } = body;
+    return this.urlService.shorten(longUrl, req.user.userId, expiresInDays);
   }
   @Get('urls/my')
   @UseGuards(JwtAuthGuard)
