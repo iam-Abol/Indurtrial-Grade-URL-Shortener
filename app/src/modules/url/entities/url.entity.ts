@@ -12,6 +12,7 @@ import {
 } from 'typeorm';
 
 @Index(['user', 'createdAt'])
+@Index(['expireAt', 'deletedAt'])
 @Entity()
 export class Url {
   @PrimaryGeneratedColumn()
@@ -20,7 +21,8 @@ export class Url {
   @ManyToOne(() => User, (user) => user.urls)
   user: User;
 
-  @Column({ nullable: true, unique: true })
+  @Column({ nullable: true })
+  @Index({ unique: true })
   customAlias: string;
 
   @Index()
