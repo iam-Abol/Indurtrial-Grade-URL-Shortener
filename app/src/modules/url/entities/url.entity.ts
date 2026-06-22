@@ -38,7 +38,7 @@ export class Url {
     type: 'timestamp',
     nullable: true,
   })
-  expireAt: Date;
+  expireAt: Date | null;
 
   @Column({ default: 0 })
   click_count: number;

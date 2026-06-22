@@ -197,8 +197,12 @@ export class UrlService {
     if (expiresInDays && expiresInDays > 365) {
       throw new BadRequestException('Maximum expiration is 365 days');
     }
-    const expireAt = new Date();
-    expireAt.setDate(expireAt.getDate() + expiresInDays!);
+    let expireAt: Date | null = null;
+
+    if (expiresInDays) {
+      expireAt = new Date();
+      expireAt.setDate(expireAt.getDate() + expiresInDays);
+    }
 
     try {
       const createdUrl = await this.create({

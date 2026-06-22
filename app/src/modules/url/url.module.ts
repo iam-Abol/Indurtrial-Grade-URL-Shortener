@@ -6,6 +6,7 @@ import { Url } from './entities/url.entity';
 import { RedisModule } from 'src/redis/redis.module';
 import { BloomFilterModule } from '../bloom-filter/bloom-filter.module';
 import { QueueModule } from 'src/queue/queue.module';
+import { UrlCleanupService } from './jobs/url-cleanup.service';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { QueueModule } from 'src/queue/queue.module';
     QueueModule,
   ],
   controllers: [UrlController],
-  providers: [UrlService],
+  providers: [UrlService, UrlCleanupService],
   exports: [UrlService],
 })
 export class UrlModule {}

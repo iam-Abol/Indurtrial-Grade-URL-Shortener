@@ -15,5 +15,5 @@ export class CreateShortUrlDto {
   @IsInt()
   @Min(1)
   @Max(365)
-  expiresInDays?: number = 7;
+  expiresInDays?: number;
 }
