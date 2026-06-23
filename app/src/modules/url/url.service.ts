@@ -88,7 +88,7 @@ export class UrlService {
   }
   async redirect(shortCode: string, redirectMetadata: RedirectMetadata) {
     const key = `rate:redirect:${redirectMetadata.ip}`;
-    await this.redisService.enforceRateLimit(key, 3, 60, { failOpen: true });
+    await this.redisService.enforceRateLimit(key, 30, 60, { failOpen: true });
 
     if (!this.bloomService.mightContain(shortCode)) {
       console.log(`Bloom Filter: ${shortCode} definitely does not exist.`);

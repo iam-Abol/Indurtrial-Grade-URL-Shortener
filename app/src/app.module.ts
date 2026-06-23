@@ -11,6 +11,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { BloomFilterModule } from './modules/bloom-filter/bloom-filter.module';
 import { BullModule } from '@nestjs/bullmq';
 import { ScheduleModule } from '@nestjs/schedule';
+import { APP_FILTER } from '@nestjs/core';
+import { GlobalExceptionFilter } from './common/global-exception.filter';
 
 @Module({
   imports: [
@@ -31,6 +33,12 @@ import { ScheduleModule } from '@nestjs/schedule';
     ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}

@@ -1,7 +1,7 @@
-import { NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Base62Converter } from './common/utils/base62.converter';
 import { ValidationPipe } from '@nestjs/common';
+import { GlobalExceptionFilter } from './common/global-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,6 +11,10 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
+  // const httpAdapterHost = app.get(HttpAdapterHost);
+
+  // app.useGlobalFilters(new GlobalExceptionFilter(httpAdapterHost));
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
