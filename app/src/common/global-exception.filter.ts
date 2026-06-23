@@ -41,7 +41,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       : rawMessage;
     const stack = exception instanceof Error ? exception.stack : undefined;
 
-    this.logger.error(`${request.method} ${request.url}`, stack);
+    // this.logger.error(`${request.method} ${request.url}`, stack);
     const responseBody = {
       statusCode: httpStatus,
       timestamp: new Date().toISOString(),

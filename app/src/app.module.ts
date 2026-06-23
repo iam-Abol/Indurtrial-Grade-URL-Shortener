@@ -13,6 +13,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { ScheduleModule } from '@nestjs/schedule';
 import { APP_FILTER } from '@nestjs/core';
 import { GlobalExceptionFilter } from './common/global-exception.filter';
+import { LoggerModule } from 'nestjs-pino';
 
 @Module({
   imports: [
@@ -31,6 +32,26 @@ import { GlobalExceptionFilter } from './common/global-exception.filter';
       },
     }),
     ScheduleModule.forRoot(),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? {
+                target: 'pino-pretty',
+                options: {
+                  singleLine: true,
+                },
+              }
+            : undefined,
+        redact: {
+          paths: ['req.headers.authorization', 'req.headers.cookie'],
+          remove: true,
+        },
+
+        autoLogging: true,
+        level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+      },
+    }),
   ],
   controllers: [AppController],
   providers: [
