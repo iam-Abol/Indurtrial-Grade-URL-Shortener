@@ -31,11 +31,14 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         ? exception.getResponse()
         : 'Internal server error';
 
-    const message =
+    const rawMessage =
       typeof exceptionResponse === 'string'
         ? exceptionResponse
         : (exceptionResponse as any).message;
 
+    const message = Array.isArray(rawMessage)
+      ? rawMessage.join(', ')
+      : rawMessage;
     const stack = exception instanceof Error ? exception.stack : undefined;
 
     this.logger.error(`${request.method} ${request.url}`, stack);
