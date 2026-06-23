@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './modules/user/user.module';
@@ -12,8 +12,9 @@ import { BloomFilterModule } from './modules/bloom-filter/bloom-filter.module';
 import { BullModule } from '@nestjs/bullmq';
 import { ScheduleModule } from '@nestjs/schedule';
 import { APP_FILTER } from '@nestjs/core';
-import { GlobalExceptionFilter } from './common/global-exception.filter';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { LoggerModule } from 'nestjs-pino';
+import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 
 @Module({
   imports: [
@@ -34,6 +35,11 @@ import { LoggerModule } from 'nestjs-pino';
     ScheduleModule.forRoot(),
     LoggerModule.forRoot({
       pinoHttp: {
+        customProps: (req) => {
+          return {
+            requestId: req['requestId'],
+          };
+        },
         transport:
           process.env.NODE_ENV !== 'production'
             ? {
@@ -62,4 +68,8 @@ import { LoggerModule } from 'nestjs-pino';
     },
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestIdMiddleware).forRoutes('*');
+  }
+}
