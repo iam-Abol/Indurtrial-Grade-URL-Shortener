@@ -1,0 +1,33 @@
+node_modules
+dist
+
+# env files
+.env
+.env.*
+!.env.example
+
+# logs
+npm-debug.log
+yarn-error.log
+
+# git
+.git
+.gitignore
+
+# editor
+.vscode
+.idea
+
+# test
+coverage
+test
+
+# OS
+.DS_Store
+
+# docker
+Dockerfile
+docker-compose.yml
+
+# misc
+README.md

@@ -8,7 +8,12 @@ import { createClient } from 'redis';
       provide: 'REDIS_CLIENT',
       useFactory: async () => {
         const client = createClient({
-          url: process.env['REDIS_URL'] || 'redis://localhost:6379',
+          url: process.env.REDIS_URL || 'redis://redis:6379',
+          socket: {
+            reconnectStrategy: (retries) => {
+              return Math.min(retries * 50, 2000);
+            },
+          },
         });
 
         client.on('error', (err) => {
@@ -16,6 +21,7 @@ import { createClient } from 'redis';
         });
 
         await client.connect();
+
         return client;
       },
     },
