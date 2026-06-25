@@ -19,7 +19,11 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json --forceExit",
     "prepare": "husky",
-    "typeorm": "typeorm-ts-node-commonjs -d src/database/data-source.ts"
+    "typeorm": "node --require ts-node/register ./node_modules/typeorm/cli.js -d ./src/database/data-source.ts",
+    "migration:generate": "npm run typeorm -- migration:generate ./src/migrations/AutoMigration",
+    "migration:create": "npm run typeorm -- migration:create ./src/migrations/ManualMigration",
+    "migration:run": "npm run typeorm -- migration:run",
+    "migration:revert": "npm run typeorm -- migration:revert"
   },
   "dependencies": {
     "@nestjs/bullmq": "^11.0.4",
@@ -79,6 +83,7 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typeorm": "^0.3.29",
+    "typeorm-ts-node-commonjs": "^0.3.20",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
   },

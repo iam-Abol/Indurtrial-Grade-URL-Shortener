@@ -32,11 +32,12 @@ export class Url {
   @Column()
   longUrl: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
   @Index()
   @Column({
+    name: 'expire_at',
     type: 'timestamp',
     nullable: true,
   })
@@ -45,7 +46,10 @@ export class Url {
   @Column({ default: 0 })
   click_count: number;
 
-  @DeleteDateColumn({ nullable: true })
+  @DeleteDateColumn({
+    name: 'deleted_at',
+    nullable: true,
+  })
   deletedAt: Date;
 
   @OneToMany(() => ClickAnalytics, (ClickAnalytics) => ClickAnalytics.url)

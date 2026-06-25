@@ -31,7 +31,7 @@ describe('App E2E Tests', () => {
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
-  }, 60000 * 3); // زمان اضافه برای بالا آمدن کانتینر
+  }, 60000 * 3);
 
   afterAll(async () => {
     await app.close();
