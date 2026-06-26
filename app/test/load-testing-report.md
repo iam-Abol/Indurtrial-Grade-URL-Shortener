@@ -1,4 +1,4 @@
-# Day 19 - Load Testing Report
+# Load Testing Report
 
 ## Objective
 
@@ -8,11 +8,11 @@ Evaluate the performance of the URL Shortener redirect endpoint under concurrent
 
 ## Environment
 
-* Framework: NestJS
-* Database: PostgreSQL
-* Cache: Redis
-* Load Testing Tool: k6
-* Test Type: Redirect Endpoint Stress Test
+- Framework: NestJS
+- Database: PostgreSQL
+- Cache: Redis
+- Load Testing Tool: k6
+- Test Type: Redirect Endpoint Stress Test
 
 ---
 
@@ -24,7 +24,7 @@ stages = [
   { duration: '1m', target: 300 },
   { duration: '1m', target: 500 },
   { duration: '30s', target: 0 },
-]
+];
 ```
 
 Target endpoint:
@@ -92,11 +92,11 @@ The Node.js application layer becomes the primary bottleneck before PostgreSQL o
 
 The benchmark also revealed:
 
-* Console logging increased CPU usage.
-* Removing runtime logs reduced CPU and memory consumption.
-* PostgreSQL was not saturated.
-* Redis was not saturated.
-* Rate limiting behaved correctly under heavy traffic.
+- Console logging increased CPU usage.
+- Removing runtime logs reduced CPU and memory consumption.
+- PostgreSQL was not saturated.
+- Redis was not saturated.
+- Rate limiting behaved correctly under heavy traffic.
 
 ---
 
@@ -110,6 +110,6 @@ Load testing also identified the application layer as the primary performance bo
 
 ## Future Optimization Tasks
 
-* Reduce synchronous work inside the redirect path.
-* Redis pipelining.
-* Lua Script for hit counting
+- Reduce synchronous work inside the redirect path.
+- Redis pipelining.
+- Lua Script for hit counting
