@@ -17,7 +17,7 @@ import { createClient } from 'redis';
         });
 
         client.on('error', (err) => {
-          console.error('Redis Client Error', err);
+          // console.error('Redis Client Error', err);
         });
 
         await client.connect();

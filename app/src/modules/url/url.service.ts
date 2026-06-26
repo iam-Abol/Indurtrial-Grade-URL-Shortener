@@ -87,11 +87,12 @@ export class UrlService {
     }
   }
   async redirect(shortCode: string, redirectMetadata: RedirectMetadata) {
-    const key = `rate:redirect:${redirectMetadata.ip}`;
-    await this.redisService.enforceRateLimit(key, 30, 60, { failOpen: true });
-
+    if (process.env.ENABLE_RATE_LIMIT === 'true') {
+      const key = `rate:redirect:${redirectMetadata.ip}`;
+      await this.redisService.enforceRateLimit(key, 30, 60, { failOpen: true });
+    }
     if (!this.bloomService.mightContain(shortCode)) {
-      console.log(`Bloom Filter: ${shortCode} definitely does not exist.`);
+      // console.log(`Bloom Filter: ${shortCode} definitely does not exist.`);
       throw new NotFoundException('Url not found');
     }
 
@@ -99,10 +100,10 @@ export class UrlService {
     try {
       nonExistent = await this.redisService.get(`url:nonexistent:${shortCode}`);
     } catch (error) {
-      console.error(
-        'Redis negative cache read failed, falling back to DB',
-        error,
-      );
+      // console.error(
+      //   'Redis negative cache read failed, falling back to DB',
+      //   error,
+      // );
     }
 
     if (nonExistent) {
@@ -116,11 +117,11 @@ export class UrlService {
     try {
       cachedData = await this.redisService.get(cacheKey);
     } catch (error) {
-      console.error('Redis is down, falling back to DB', error);
+      // console.error('Redis is down, falling back to DB', error);
     }
 
     if (cachedData) {
-      console.log('redis hit');
+      // console.log('redis hit');
       this.trackHit(hitsKey).catch(() => {});
       const parsed = JSON.parse(cachedData) as RedisUrlData;
 
@@ -128,7 +129,7 @@ export class UrlService {
         try {
           await this.redisService.del(cacheKey);
         } catch (error) {
-          console.error('Failed to delete expired cache key', error);
+          // console.error('Failed to delete expired cache key', error);
         }
         throw new NotFoundException('Url expired');
       }
@@ -146,7 +147,7 @@ export class UrlService {
           'NOT_FOUND',
         );
       } catch (error) {
-        console.error('Failed to save negative cache', error);
+        // console.error('Failed to save negative cache', error);
       }
       throw new NotFoundException('Url not found');
     }
@@ -171,11 +172,11 @@ export class UrlService {
             }),
           );
         } catch (err) {
-          console.error('Failed to save to Redis', err);
+          // console.error('Failed to save to Redis', err);
         }
       }
     }
-    // TODO -> click rate with a queue
+
     this.trackAnalytics(url.id, redirectMetadata);
     return url.longUrl;
   }
@@ -247,7 +248,7 @@ export class UrlService {
       await this.redisService.del(cacheKey);
       await this.redisService.del(hitsKey);
     } catch {
-      console.log('failed to delete from redis');
+      // console.log('failed to delete from redis');
     }
   }
   computeCacheTtl(expire_at: Date | null) {

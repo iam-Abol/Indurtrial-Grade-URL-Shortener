@@ -20,11 +20,11 @@ export class BloomFilterService implements OnModuleInit {
     );
   }
   async onModuleInit() {
-    console.log('Hydrating Bloom Filter...');
+    // console.log('Hydrating Bloom Filter...');
     // TODO => memory overflow -> pagination
     const allCodes = await this.urlService.getShortCodes();
     allCodes.forEach((u) => this.filter.add(u.shortCode));
-    console.log(`Bloom Filter ready with ${allCodes.length} codes.`);
+    // console.log(`Bloom Filter ready with ${allCodes.length} codes.`);
   }
   add(shortCode: string) {
     this.filter.add(shortCode);

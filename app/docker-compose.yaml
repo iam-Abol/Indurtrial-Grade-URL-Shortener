@@ -15,6 +15,7 @@ services:
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/url_shortener
       REDIS_URL: redis://redis:6379
       NODE_ENV: production
+      ENABLE_RATE_LIMIT: true
     restart: always
   postgres:
     image: postgres:16-alpine

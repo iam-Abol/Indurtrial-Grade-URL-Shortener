@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
@@ -50,7 +49,9 @@ export class UrlController {
       userAgent: req.headers['user-agent'] ?? '',
       referer: req.headers.referer ?? '',
     };
+
     const url = await this.urlService.redirect(code, metadata);
+
     return res.redirect(302, url);
   }
 }
