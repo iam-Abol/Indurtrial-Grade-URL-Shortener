@@ -105,15 +105,15 @@ It goes beyond simply generating short URLs by incorporating intelligent caching
 
 # 🧱 System Components
 
-| Component | Responsibility |
-|-----------|----------------|
-| NestJS | REST API & Business Logic |
-| PostgreSQL | Persistent Storage |
-| Redis | Cache, Rate Limiter, Hot URLs, Locks |
-| BullMQ | Asynchronous Analytics |
-| Bloom Filter | Fast URL Existence Lookup |
-| Cron Jobs | Expired URL Cleanup |
-| Pino | Structured Logging |
+| Component    | Responsibility                       |
+| ------------ | ------------------------------------ |
+| NestJS       | REST API & Business Logic            |
+| PostgreSQL   | Persistent Storage                   |
+| Redis        | Cache, Rate Limiter, Hot URLs, Locks |
+| BullMQ       | Asynchronous Analytics               |
+| Bloom Filter | Fast URL Existence Lookup            |
+| Cron Jobs    | Expired URL Cleanup                  |
+| Pino         | Structured Logging                   |
 
 ---
 
@@ -151,22 +151,22 @@ Redis --> Locks
 
 # ⚙️ Technology Stack
 
-| Category | Technology |
-|-----------|------------|
-| Language | TypeScript |
-| Framework | NestJS |
-| Database | PostgreSQL |
-| ORM | TypeORM |
-| Cache | Redis |
-| Queue | BullMQ |
-| Authentication | JWT |
-| Password Hashing | bcrypt |
-| Validation | class-validator |
-| Logging | Pino |
-| Testing | Jest + Supertest |
-| Integration Testing | Testcontainers |
-| Load Testing | k6 |
-| Containerization | Docker |
+| Category            | Technology       |
+| ------------------- | ---------------- |
+| Language            | TypeScript       |
+| Framework           | NestJS           |
+| Database            | PostgreSQL       |
+| ORM                 | TypeORM          |
+| Cache               | Redis            |
+| Queue               | BullMQ           |
+| Authentication      | JWT              |
+| Password Hashing    | bcrypt           |
+| Validation          | class-validator  |
+| Logging             | Pino             |
+| Testing             | Jest + Supertest |
+| Integration Testing | Testcontainers   |
+| Load Testing        | k6               |
+| Containerization    | Docker           |
 
 ---
 
@@ -204,52 +204,40 @@ API-->>Client: Short URL
 
 ```mermaid
 sequenceDiagram
+    participant Client
+    participant API
+    participant Redis
+    participant "Bloom Filter" as Bloom
+    participant PostgreSQL
+    participant Queue
 
-Client->>API: GET /:code
+    Client->>API: GET /:code
+    API->>Redis: Rate Limit
+    API->>Bloom: Exists?
 
-API->>Redis: Rate Limit
+    alt Definitely Not
+        API-->>Client: 404
+    else Maybe Exists
+        API->>Redis: Negative Cache
 
-API->>Bloom Filter: Exists?
+        alt Cached Missing
+            Redis-->>Client: 404
+        else Continue
+            API->>Redis: Hot Cache
 
-alt Definitely Not
-
-Bloom Filter-->>Client: 404
-
-else Maybe Exists
-
-API->>Redis: Negative Cache
-
-alt Cached Missing
-
-Redis-->>Client:404
-
-else Continue
-
-API->>Redis: Hot Cache
-
-alt Cache Hit
-
-Redis-->>API: Long URL
-
-API->>Queue: Publish Analytics
-
-API-->>Client:302 Redirect
-
-else Cache Miss
-
-API->>PostgreSQL: Lookup URL
-
-PostgreSQL-->>API:URL
-
-API->>Redis:Cache Hot URL
-
-API->>Queue:Publish Analytics
-
-API-->>Client:302 Redirect
-
-end
-
-end
+            alt Cache Hit
+                Redis-->>API: Long URL
+                API->>Queue: Publish Analytics
+                API-->>Client: 302 Redirect
+            else Cache Miss
+                API->>PostgreSQL: Lookup URL
+                PostgreSQL-->>API: URL
+                API->>Redis: Cache Hot URL
+                API->>Queue: Publish Analytics
+                API-->>Client: 302 Redirect
+            end
+        end
+    end
 ```
 
 ---
