@@ -754,3 +754,293 @@ X-Request-Id
 This identifier propagates through logs, making debugging distributed requests significantly easier.
 
 ---
+
+
+# 🧠 Security Deep Dive
+
+This project was designed with **production-grade security considerations**, not just a simple demo.
+
+---
+
+## 🔒 URL Safety Validation
+
+Every submitted URL is validated before persistence:
+
+- Only `http` and `https` allowed
+- Blocks:
+  - `localhost`
+  - Private IP ranges (`10.x`, `192.168.x`, `172.16-31.x`)
+  - Link-local addresses
+- DNS resolution is enforced to prevent:
+  - SSRF attacks
+  - Internal network probing
+
+```ts
+assertUrlIsSafe()
+```
+
+---
+
+## 🛡 SSRF Protection Layer
+
+Even if a user bypasses frontend validation:
+
+- DNS lookup is performed server-side
+- IP is checked against private ranges
+- Requests to internal infrastructure are blocked
+
+---
+
+## 🚦 Rate Limiting
+
+Implemented using Redis:
+
+| Action | Limit |
+|--------|------|
+| Login | 5 / min per IP |
+| Create URL | 100 / min per user |
+| Redirect | 30 / min per IP |
+
+Additionally:
+
+- Graceful degradation option (`failOpen`)
+- Redis failure fallback mode
+
+---
+
+## 🔐 Authentication Security
+
+- JWT authentication (Passport strategy)
+- Password hashing using `bcrypt (saltRounds=12)`
+- Unauthorized access strictly blocked via guards
+
+---
+
+## 🧱 Bloom Filter Protection
+
+To reduce DB load:
+
+- Prevents unnecessary DB hits for invalid short codes
+- Memory-efficient probabilistic lookup
+- Eliminates large % of cache misses
+
+---
+
+# ⚡ Performance Engineering
+
+This system is optimized for **high read-heavy traffic**.
+
+---
+
+## 🚀 Redirect Optimization Pipeline
+
+```text
+Bloom Filter → Redis Cache → DB → Response
+```
+
+Key optimizations:
+
+- Hot path cached in Redis
+- Negative caching for missing URLs
+- Hit counter in Redis
+- Batch analytics via queue
+
+---
+
+## 🔥 Hot URL Detection
+
+A URL becomes "hot" after:
+
+```
+10 hits in 30 minutes
+```
+
+Then:
+
+- Cached in Redis
+- Served directly from memory layer
+
+---
+
+## 🧠 Redis Optimizations
+
+- TTL-based caching
+- Negative caching
+- Hit counter with expiration
+- Distributed lock for cron jobs
+- Incremental counters instead of DB writes
+
+---
+
+## 🧵 Async Analytics Pipeline
+
+Click tracking is fully async:
+
+- No blocking on redirect path
+- BullMQ queue for ingestion
+- Worker processes analytics independently
+
+---
+
+# 📊 Benchmark Results (k6)
+
+Load testing performed using **k6** under stress conditions.
+
+---
+
+## Test Scenario
+
+```ts
+stages: [
+  { duration: '30s', target: 100 },
+  { duration: '1m', target: 300 },
+  { duration: '1m', target: 500 },
+  { duration: '30s', target: 0 },
+];
+```
+
+---
+
+## Results
+
+| Metric | Value |
+|--------|------|
+| Throughput | 668 RPS |
+| Avg Latency | 374 ms |
+| P95 Latency | 683 ms |
+| Error Rate | 0% |
+
+---
+
+## Bottleneck Analysis
+
+| Layer | Status |
+|------|--------|
+| Redis | ❄️ Not saturated |
+| PostgreSQL | ❄️ Not saturated |
+| Node.js App | 🔥 Bottleneck |
+
+---
+
+## Key Observations
+
+- Console logging increased CPU usage
+- Rate limiting caused artificial bottlenecks in multi-VU simulation
+- DB was not the limiting factor
+- Redis remained stable under load
+
+---
+
+# 🧪 Testing Strategy
+
+## Unit Tests
+
+- Base62 encoding/decoding
+
+---
+
+## Integration Tests
+
+- Auth flow
+- URL shortening flow
+- CRUD operations
+
+---
+
+## E2E Tests
+
+Using:
+
+- NestJS TestingModule
+- Supertest
+- Testcontainers (PostgreSQL)
+
+Coverage:
+
+- Signup → Login → Shorten → Redirect → Delete
+
+---
+
+# 📈 Observability
+
+## Logging
+
+- Pino structured logging
+- Request ID tracing
+- Redacted sensitive headers
+
+## Metrics (potential extension)
+
+System is ready for:
+
+- Prometheus
+- Grafana dashboards
+- OpenTelemetry tracing
+
+---
+
+# 🚀 Future Improvements
+
+## Performance
+
+- [ ] Redis Lua scripting for atomic counters
+- [ ] Redis pipelining in analytics
+- [ ] Read replicas for PostgreSQL
+- [ ] CDN integration for redirect layer
+
+## Scalability
+
+- [ ] Multi-region deployment
+- [ ] Sharded analytics storage
+- [ ] Kafka instead of BullMQ (optional scale upgrade)
+
+## Reliability
+
+- [ ] Retry strategy improvements
+
+---
+
+# 🎯 Why This Project?
+
+This is not a simple URL shortener.
+
+It demonstrates:
+
+- High-performance backend design
+- Scalable caching strategies
+- Async event-driven architecture
+- Real-world production patterns
+- Security-first engineering
+
+---
+
+# 🧾 Final Architecture Summary
+
+```text
+Client
+  ↓
+NestJS API
+  ↓
+Bloom Filter
+  ↓
+Redis (Cache + Rate Limit + Hits)
+  ↓
+PostgreSQL
+  ↓
+BullMQ (Analytics)
+  ↓
+Worker
+```
+
+---
+
+# 🏁 Conclusion
+
+This system is designed to handle:
+
+- High traffic redirects
+- Write-heavy analytics workloads
+- Secure URL validation
+- Low-latency responses
+
+while maintaining **clean modular architecture and production readiness**.
