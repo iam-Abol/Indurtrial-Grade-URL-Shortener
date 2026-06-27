@@ -383,17 +383,17 @@ The project follows a **modular architecture**, where each business capability i
 
 # 🧩 Module Overview
 
-| Module | Responsibility |
-|----------|----------------|
-| Auth | Authentication & JWT |
-| User | User Management |
-| URL | URL Creation & Redirect |
-| Analytics | Click Tracking |
-| Redis | Cache & Rate Limiting |
-| Queue | Background Jobs |
-| Bloom Filter | Fast URL Lookup |
-| Database | PostgreSQL Configuration |
-| Common | Shared Utilities |
+| Module       | Responsibility           |
+| ------------ | ------------------------ |
+| Auth         | Authentication & JWT     |
+| User         | User Management          |
+| URL          | URL Creation & Redirect  |
+| Analytics    | Click Tracking           |
+| Redis        | Cache & Rate Limiting    |
+| Queue        | Background Jobs          |
+| Bloom Filter | Fast URL Lookup          |
+| Database     | PostgreSQL Configuration |
+| Common       | Shared Utilities         |
 
 ---
 
@@ -596,29 +596,29 @@ Protected endpoints include:
 
 ## Authentication
 
-| Method | Endpoint | Description |
-|---------|----------|-------------|
-| POST | /auth/signup | Register User |
-| POST | /auth/login | Login |
+| Method | Endpoint     | Description   |
+| ------ | ------------ | ------------- |
+| POST   | /auth/signup | Register User |
+| POST   | /auth/login  | Login         |
 
 ---
 
 ## URL
 
-| Method | Endpoint | Description |
-|---------|----------|-------------|
-| POST | /shorten | Create Short URL |
-| GET | /:code | Redirect |
-| GET | /urls/my | User URLs |
-| DELETE | /urls/:id | Delete URL |
+| Method | Endpoint  | Description      |
+| ------ | --------- | ---------------- |
+| POST   | /shorten  | Create Short URL |
+| GET    | /:code    | Redirect         |
+| GET    | /urls/my  | User URLs        |
+| DELETE | /urls/:id | Delete URL       |
 
 ---
 
 ## Analytics
 
-| Method | Endpoint |
-|---------|----------|
-| GET | /analytics/url/:id/clicks |
+| Method | Endpoint                  |
+| ------ | ------------------------- |
+| GET    | /analytics/url/:id/clicks |
 
 ---
 
@@ -664,14 +664,14 @@ Queue Analytics
 
 Redis is used for much more than simple caching.
 
-| Feature | Usage |
-|----------|-------|
-| URL Cache | Hot URLs |
-| Negative Cache | Missing URLs |
-| Rate Limiter | Login / Redirect / Create |
-| Hit Counter | Hot URL Detection |
-| Distributed Lock | Cron Job |
-| BullMQ Backend | Queue Storage |
+| Feature          | Usage                     |
+| ---------------- | ------------------------- |
+| URL Cache        | Hot URLs                  |
+| Negative Cache   | Missing URLs              |
+| Rate Limiter     | Login / Redirect / Create |
+| Hit Counter      | Hot URL Detection         |
+| Distributed Lock | Cron Job                  |
+| BullMQ Backend   | Queue Storage             |
 
 ---
 
@@ -700,16 +700,11 @@ Analytics collection never blocks redirects.
 
 ```mermaid
 flowchart LR
-
-Redirect --> Producer
-
-Producer --> BullMQ
-
-BullMQ --> Consumer
-
-Consumer --> Analytics Service
-
-Analytics Service --> PostgreSQL
+    A["Redirect API"] --> B["Producer"]
+    B --> C["BullMQ"]
+    C --> D["Consumer"]
+    D --> E["Analytics Service"]
+    E --> F[("PostgreSQL")]
 ```
 
 This ensures that redirect latency remains low even under heavy traffic.
@@ -739,10 +734,10 @@ Example:
 
 ```json
 {
-    "statusCode":404,
-    "timestamp":"2026-06-27T12:00:00Z",
-    "path":"/abc123",
-    "message":"Url not found"
+  "statusCode": 404,
+  "timestamp": "2026-06-27T12:00:00Z",
+  "path": "/abc123",
+  "message": "Url not found"
 }
 ```
 
