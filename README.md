@@ -22,28 +22,28 @@ It goes beyond simply generating short URLs by incorporating intelligent caching
 
 ## Core Features
 
-- 🔗 URL Shortening
-- 🔐 JWT Authentication
-- 👤 User Management
-- 📋 User Dashboard (My URLs)
-- 🗑 Soft Delete URLs
-- ⏳ Expiring URLs
-- 🎯 Base62 Short Code Generation
-- 📊 Click Counter
-- 📈 Click Analytics
-- 🤖 Bot Detection
+-  URL Shortening
+-  JWT Authentication
+-  User Management
+-  User Dashboard (My URLs)
+-  Soft Delete URLs
+-  Expiring URLs
+-  Base62 Short Code Generation
+-  Click Counter
+-  Click Analytics
+-  Bot Detection
 
 ---
 
 ## Performance Features
 
-- ⚡ Redis Cache
-- 🔥 Hot URL Cache
-- 🚫 Negative Cache
-- 🌸 Bloom Filter Lookup
-- 📬 Async Analytics Queue (BullMQ)
-- 📉 Cache TTL Jitter
-- 📈 Optimized Database Indexes
+-  Redis Cache
+-  Hot URL Cache
+-  Negative Cache
+-  Bloom Filter Lookup
+-  Async Analytics Queue (BullMQ)
+-  Cache TTL Jitter
+-  Optimized Database Indexes
 
 ---
 
@@ -103,7 +103,7 @@ It goes beyond simply generating short URLs by incorporating intelligent caching
 
 ---
 
-# 🧱 System Components
+# System Components
 
 | Component    | Responsibility                       |
 | ------------ | ------------------------------------ |
